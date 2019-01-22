@@ -1,5 +1,5 @@
 import React from 'react'
-import { compose, withHandlers, withState, renameProp } from 'recompose'
+import { compose, withStateHandlers } from 'recompose'
 
 const ToggleHelloWorld = props => {
   const {
@@ -11,6 +11,7 @@ const ToggleHelloWorld = props => {
     showTooltip,
     hideTooltip
   } = props
+
   return <div>
     {isWorldShow && 'Hello world'}
     <button onClick={showWorld}>Show</button>
@@ -22,21 +23,26 @@ const ToggleHelloWorld = props => {
   </div>
 }
 
-const withToggle = compose(
-  withState(
-    'status',
-    'setStatus',
-    false
-  ),
-  withHandlers({
-    show: ({ setStatus }) => () => setStatus(true),
-    hide: ({ setStatus }) => () => setStatus(false),
-    toggle: ({ setStatus, status }) => () => setStatus(!status)
-  }),
-  renameProp(
-    'status',
-    'isShow'
+const withToggle = Name => compose(
+  withStateHandlers(
+    {
+      [`is${Name}Show`]: false
+    },
+    {
+      [`show${Name}`]: () => () => ({
+        [`is${Name}Show`]: true
+      }),
+      [`hide${Name}`]: () => () => ({
+        [`is${Name}Show`]: false
+      }),
+      [`toggle${Name}`]: state => () => ({
+        [`is${Name}Show`]: !state[`is${Name}Show`]
+      })
+    }
   )
 )
 
-export default withToggle(ToggleHelloWorld);
+export default compose(
+  withToggle('World'),
+  withToggle('Tooltip')
+)(ToggleHelloWorld);
